@@ -1,0 +1,21 @@
+# OS
+.DS_Store
+Thumbs.db
+Desktop.ini
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# Profiles and templates (user-specific, not committed)
+profiles/
+templates/
+
+# Playwright artifacts (scoped to the mcp cache dir so assets/ PNGs still track)
+.playwright-mcp/
+
+# Temp files
+*.tmp
+*.bak

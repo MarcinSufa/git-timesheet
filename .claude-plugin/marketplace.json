@@ -1,0 +1,38 @@
+{
+  "name": "marcin-sufa-plugins",
+  "owner": {
+    "name": "Marcin Sufa"
+  },
+  "metadata": {
+    "description": "Plugins by Marcin Sufa for Claude Code",
+    "version": "1.0.0"
+  },
+  "plugins": [
+    {
+      "name": "git-timesheet",
+      "source": "./plugins/git-timesheet",
+      "description": "Generate weekly timesheets from git history",
+      "version": "1.0.4-beta",
+      "author": {
+        "name": "Marcin Sufa"
+      },
+      "homepage": "https://github.com/MarcinSufa/git-timesheet",
+      "repository": "https://github.com/MarcinSufa/git-timesheet",
+      "license": "MIT",
+      "category": "productivity",
+      "tags": [
+        "timesheet",
+        "git",
+        "time-tracking",
+        "tmetric",
+        "toggl",
+        "clockify",
+        "harvest",
+        "pdf",
+        "csv",
+        "holidays",
+        "pto"
+      ]
+    }
+  ]
+}

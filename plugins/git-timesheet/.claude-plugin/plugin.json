@@ -1,0 +1,23 @@
+{
+  "name": "git-timesheet",
+  "description": "Generate weekly timesheets from git commit history. Allocates hours based on commit complexity, supports holidays by country, PTO/sick days, multiple team members, project mapping, custom templates, and saved profiles.",
+  "version": "1.0.4-beta",
+  "author": {
+    "name": "Marcin Sufa",
+    "url": "https://github.com/MarcinSufa"
+  },
+  "homepage": "https://github.com/MarcinSufa/git-timesheet",
+  "repository": "https://github.com/MarcinSufa/git-timesheet",
+  "license": "MIT",
+  "keywords": [
+    "timesheet",
+    "git",
+    "time-tracking",
+    "tmetric",
+    "toggl",
+    "pdf",
+    "csv",
+    "holidays",
+    "pto"
+  ]
+}
