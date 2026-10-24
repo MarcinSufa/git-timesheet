@@ -327,9 +327,14 @@ def _observed(country, base):
     return out
 
 
+# Common names people type for a supported ISO code.
+ALIASES = {"UK": "GB"}
+
+
 def holidays_for_year(year, country):
     """List of dicts for one calendar year, sorted by date."""
     country = (country or "").upper()
+    country = ALIASES.get(country, country)
     if country not in RULES:
         return []
     days = []
@@ -370,6 +375,7 @@ def main(argv=None):
     p.add_argument("--english", action="store_true", help="English names in 'name'")
     a = p.parse_args(argv)
     cc = a.country.upper()
+    cc = ALIASES.get(cc, cc)
     if cc in ("", "NONE"):
         print("[]")
         return 0

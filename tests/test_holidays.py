@@ -165,5 +165,14 @@ class CliTest(unittest.TestCase):
         self.assertEqual(years, {"2026", "2027"})
 
 
+class AliasTest(unittest.TestCase):
+    def test_uk_is_gb(self):
+        self.assertEqual(hol.holidays_for_year(2026, "UK"), hol.holidays_for_year(2026, "GB"))
+        code, out, err = run_cli("2026", "uk")
+        self.assertEqual(code, 0)
+        self.assertEqual(err, "")
+        self.assertIn("2026-08-31", out)
+
+
 if __name__ == "__main__":
     unittest.main()
