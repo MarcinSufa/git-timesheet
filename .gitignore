@@ -9,9 +9,16 @@ Desktop.ini
 *.swp
 *.swo
 
-# Profiles and templates (user-specific, not committed)
+# Profiles and templates (user-specific, not committed). Since 1.1 they live in
+# the plugin data dir; these patterns protect a pre-1.1 symlinked skill folder.
+# The bundled template is skills/timesheet/assets/default.html.
 profiles/
 templates/
+
+# Python
+__pycache__/
+*.pyc
+.venv/
 
 # Playwright artifacts (scoped to the mcp cache dir so assets/ PNGs still track)
 .playwright-mcp/
