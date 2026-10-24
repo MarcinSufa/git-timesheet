@@ -11,7 +11,7 @@
   </p>
 
   <p>
-    <img src="https://img.shields.io/badge/version-1.0.4--beta-3b82f6?style=for-the-badge" alt="version" />
+    <img src="https://img.shields.io/badge/version-1.1.0--beta-3b82f6?style=for-the-badge" alt="version" />
     <img src="https://img.shields.io/badge/license-MIT-10b981?style=for-the-badge" alt="license" />
     <img src="https://img.shields.io/badge/Claude%20Code-plugin-8b5cf6?style=for-the-badge" alt="claude code plugin" />
   </p>
@@ -113,12 +113,12 @@ flowchart LR
 
 | Commit | Lines | Files | Score | Time |
 |---|---|---|---|---|
-| `feat(auth): Add OAuth2 flow` | 150 | 8 | 230 | **6:45** |
-| `fix(ui): Button alignment` | 3 | 1 | 13 | **1:15** |
+| `feat(auth): Add OAuth2 flow` | 150 | 8 | 230 | **7:00** |
+| `fix(ui): Button alignment` | 3 | 1 | 20 (floor) | **1:00** |
 
-Result: **6:45 + 1:15 = 8:00** — not 4:00 + 4:00.
+Result: **7:00 + 1:00 = 8:00** — not 4:00 + 4:00.
 
-Formula: `score = lines_changed + (files_changed × 10)`. Minimum floor of 20 (because every fix takes investigation + testing).
+Formula: `score = lines_changed + (files_changed × 10)`, minimum 20 (every fix takes investigation + testing). On a day with several entries each gets at least 1:00 and the rest is shared by score, with a little seeded variation so weeks don't look machine-made — the same input always gives the same timesheet. Full rules: [allocation.md](plugins/git-timesheet/skills/timesheet/references/allocation.md).
 
 ---
 
@@ -145,8 +145,9 @@ Formula: `score = lines_changed + (files_changed × 10)`. Minimum floor of 20 (b
 
   `US` · `GB` · `DE` · `PL` · `AU` · `NZ` · `CA` · `FR` · `NL`
 
-- Easter-dependent holidays computed via the computus algorithm
-- Mark PTO and sick days per run — hours redistribute across remaining work days
+- National holidays incl. observed/substitute days (e.g. US Juneteenth, PL Christmas Eve from 2025, NZ Matariki from the official 2022-2030 table, King's Birthday); names in the local language for PL/DE/FR/NL. State/provincial holidays are not included.
+- Any other country: add its holidays by hand for the run
+- Mark PTO and sick days per run — the remaining work days still get the full hours
 
 ### Date presets
 
@@ -178,7 +179,7 @@ Your company has a specific timesheet format? Give the plugin a sample file and 
 
 The plugin analyzes the layout (columns, colors, fonts, logo placement, headers) and generates a matching HTML template. Supports **PDF, PNG, JPG, DOCX** inputs.
 
-Templates are saved in `~/.claude/skills/timesheet/templates/` and reusable across runs.
+Templates are saved in the plugin's data directory (see [Where your data lives](#where-your-data-lives)) and reusable across runs. A template is HTML with placeholders such as `{{title}}` and `{{table}}` — see [templates.md](plugins/git-timesheet/skills/timesheet/references/templates.md).
 
 Refine an existing template via natural language:
 
@@ -233,13 +234,23 @@ Save your setup once, reuse forever:
 }
 ```
 
-Profiles live in `~/.claude/skills/timesheet/profiles/`. Managed via:
+Profiles live in the plugin's data directory (below). Managed via:
 
 ```
 /timesheet --list-profiles
 /timesheet --edit-profile my-profile
 /timesheet --delete-profile my-profile
 ```
+
+### Where your data lives
+
+Profiles and custom templates are stored in, by priority:
+
+1. `$GIT_TIMESHEET_HOME`, if you set it (e.g. a synced folder);
+2. the plugin data directory Claude Code provides (`${CLAUDE_PLUGIN_DATA}`), which survives plugin updates;
+3. `~/.config/git-timesheet/` (or `$XDG_CONFIG_HOME/git-timesheet/`) when the skill is installed by hand.
+
+Versions up to 1.0.4 used `~/.claude/skills/timesheet/`. The skill notices old profiles there and offers to copy them over (nothing is deleted).
 
 ---
 
@@ -251,8 +262,8 @@ Push time entries directly to your tracking tool — no manual data entry:
 |---|---|---|
 | **Toggl Track** | API token | Description, duration, project, date |
 | **Clockify** | API key | Description, start/end time, project |
-| **TMetric** | Bearer token | Description, start/end time, project |
-| **Harvest** | OAuth token | Description, hours, project, task, date |
+| **TMetric** | API token (Bearer) | Description, start/end time, project |
+| **Harvest** | Personal access token + account ID | Description, hours, project, task, date |
 
 Before pushing, you always get a confirmation showing exactly what will be created. Duplicate detection prevents double-entries if you run the same range again.
 
@@ -287,7 +298,7 @@ All timesheet labels, headers, day names, and month names translate based on you
 
 **Built-in:** English · Polish · German · French · Spanish · Dutch
 
-For any other language, Claude translates dynamically — just set the language code:
+For any other language, Claude writes a small translation file for the labels — just set the language code:
 
 ```json
 { "settings": { "language": "pt" } }
@@ -299,9 +310,9 @@ Holiday names stay in their native language (they're proper nouns).
 
 ## Security
 
-- **API tokens are NEVER stored in profile files.** Tokens are read from environment variables at runtime.
-- **Profiles only store non-secret config** (service name, workspace ID, settings).
-- **`profiles/` directory is gitignored** — your personal config won't accidentally get committed.
+- **API tokens are NEVER stored in profile files** and never pasted into the chat. They are read from environment variables at runtime.
+- **Tokens never appear in output or on a command line**: a helper writes the auth header to a private (0600) temp file that `curl -H @file` reads, and deletes it afterwards.
+- **Profiles only store non-secret config** (service name, workspace ID, settings) and live outside your repos, in the plugin data directory.
 - **Confirmation before every API push** — you always see exactly what's being sent.
 
 Set your tokens as environment variables:
@@ -334,8 +345,8 @@ After setting, restart your terminal so Claude Code picks up the new variables.
 
 - [Claude Code](https://code.claude.com) terminal CLI with plugin support
 - Git repositories with commit history
-- Python 3 (for holiday calculation and local HTTP server during PDF generation)
-- Playwright MCP plugin — optional, only needed for PDF output. Without it, CSV-only output still works.
+- Python 3.9+ (standard library only) — macOS/Linux `python3`; on Windows `py -3`
+- For PDF output: a headless Chromium — Python Playwright, Google Chrome/Chromium, or `npx -y playwright install chromium-headless-shell`. Without one you still get CSV and HTML, and the skill tells you what to install. The Playwright MCP plugin is an optional fallback.
 
 ---
 
@@ -349,7 +360,7 @@ PRs welcome. Some ideas the roadmap already has:
 - Jira / Linear ticket integration for richer task descriptions
 - GitHub Actions integration for automated monthly timesheets
 
-See [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines.
+See [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines. Tests: `python3 -m unittest discover -s tests`.
 
 ---
 
