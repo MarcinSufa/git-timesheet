@@ -61,12 +61,16 @@ def _truncate(s, n=MAX_DESC):
 
 
 def parse_day_off(value):
-    """'2026-04-07', '2026-04-07:sick', '2026-04-07..2026-04-11:pto:Vacation'."""
+    """'2026-04-07', '2026-04-07:sick', '2026-04-07..2026-04-11:pto:Vacation'.
+
+    Type 'holiday' ('2026-05-01:holiday:Labour Day') adds a public holiday by
+    hand, for countries without a built-in calendar.
+    """
     parts = value.split(":", 2)
     span = parts[0]
     kind = (parts[1] if len(parts) > 1 and parts[1] else "pto").lower()
-    if kind not in ("pto", "sick"):
-        raise ValueError("day-off type must be pto or sick, got %r" % kind)
+    if kind not in ("pto", "sick", "holiday"):
+        raise ValueError("day-off type must be pto, sick or holiday, got %r" % kind)
     reason = parts[2] if len(parts) > 2 else None
     if ".." in span:
         a, b = span.split("..", 1)

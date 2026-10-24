@@ -94,6 +94,13 @@ class AllocateTest(unittest.TestCase):
         self.assertEqual(set(m["task sun"]), {"2026-04-10"})
         self.assertEqual(r["weeks"][0]["total"], 2 * 480)
 
+    def test_manual_holiday_for_unsupported_country(self):
+        offs = allocate.parse_day_off("2026-04-07:holiday:Local Day")
+        r = allocate.allocate(doc([commit("2026-04-07", "a")]), country=None, days_off=offs)
+        day = days_by_date(r)["2026-04-07"]
+        self.assertEqual((day["status"], day["label"], day["minutes"]), ("holiday", "Local Day", 0))
+        self.assertEqual(r["total_minutes"], 4 * 480)
+
     def test_same_scope_same_day_is_one_entry(self):
         commits = [commit("2026-04-06", "a", scope="auth", desc="feat(auth): A"),
                    commit("2026-04-06", "b", scope="auth", desc="fix(auth): B"),
@@ -229,7 +236,7 @@ class CliTest(unittest.TestCase):
             self.assertIsNone(r["country"])
             self.assertEqual(r["weeks"][0]["entries"][0]["project"], "App")
             with contextlib.redirect_stdout(io.StringIO()), contextlib.redirect_stderr(err):
-                code = allocate.main(["--commits", cpath, "--day-off", "2026-04-06:holiday"])
+                code = allocate.main(["--commits", cpath, "--day-off", "2026-04-06:vacation"])
             self.assertEqual(code, 2)
 
 
