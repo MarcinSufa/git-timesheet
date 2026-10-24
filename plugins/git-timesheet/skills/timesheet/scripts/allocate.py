@@ -349,7 +349,11 @@ def main(argv=None):
         with open(os.path.expanduser(a.profile), encoding="utf-8") as f:
             profile = json.load(f)
     s = profile.get("settings", {})
-    doc = json.load(sys.stdin if a.commits == "-" else open(a.commits, encoding="utf-8"))
+    if a.commits == "-":
+        doc = json.load(sys.stdin)
+    else:
+        with open(a.commits, encoding="utf-8") as f:
+            doc = json.load(f)
     country = a.country if a.country is not None else s.get("country")
     if country and country.lower() in ("none", "other", ""):
         country = None
