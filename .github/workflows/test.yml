@@ -1,0 +1,29 @@
+name: tests
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  unittest:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: ["3.9", "3.12"]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+      - name: Scripts are executable
+        run: |
+          for f in plugins/git-timesheet/skills/timesheet/scripts/*.py; do
+            test -x "$f" || { echo "not executable: $f"; exit 1; }
+          done
+      - name: Unit tests (stdlib only)
+        run: python3 -m unittest discover -s tests -v

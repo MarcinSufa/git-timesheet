@@ -5,14 +5,14 @@
   },
   "metadata": {
     "description": "Plugins by Marcin Sufa for Claude Code",
-    "version": "1.0.0"
+    "version": "1.1.0-beta"
   },
   "plugins": [
     {
       "name": "git-timesheet",
       "source": "./plugins/git-timesheet",
       "description": "Generate weekly timesheets from git history",
-      "version": "1.0.4-beta",
+      "version": "1.1.0-beta",
       "author": {
         "name": "Marcin Sufa"
       },

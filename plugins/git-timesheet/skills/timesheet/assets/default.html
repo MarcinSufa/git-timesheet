@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="{{lang}}">
+<head>
+<meta charset="utf-8">
+<title>{{title}} - {{member}} - {{period}}</title>
+<!--
+  git-timesheet default template (tmetric-style weekly grid).
+  render.py fills the double-brace placeholders below (lang, title, member_label,
+  member, period_label, period, total_label, total, table); "table" is the full <table>.
+  Table classes you can style in a custom template:
+    th.col-entry / th.col-billable / th.col-project / th.col-day / th.col-total
+    td.entry / td.billable / td.project / td.day / td.total
+    th .dow, th .date, .holiday, .pto, .sick, tr.totals-row, td.overtime, td.off
+-->
+<style>
+  @page { size: A4 landscape; margin: 20mm; }
+  body { font-family: "Helvetica Neue", Arial, "Liberation Sans", "DejaVu Sans", sans-serif; color: #333; margin: 0; padding: 0; }
+  h1 { font-size: 28px; font-weight: 700; margin: 0 0 24px 0; }
+  .header-row { display: flex; margin-bottom: 6px; font-size: 15px; }
+  .header-label { width: 120px; color: #666; }
+  .header-value { font-weight: 600; }
+  table { border-collapse: collapse; width: 100%; margin-top: 24px; font-size: 13px; }
+  th, td { border: 1px solid #ddd; padding: 8px 10px; text-align: center; }
+  th { background: #f8f9fa; font-weight: 600; }
+  td.entry { text-align: left; max-width: 280px; }
+  th.col-day { font-size: 12px; line-height: 1.4; }
+  th .dow { font-weight: 600; }
+  th .date { font-weight: 400; }
+  tr.totals-row td { font-weight: 700; background: #f8f9fa; }
+  td.total { font-weight: 700; }
+  td.off { color: #999; }
+  td.overtime { color: #c0392b; }
+  .holiday { color: #e74c3c; font-style: italic; font-size: 11px; }
+  .pto { color: #f39c12; font-style: italic; font-size: 11px; }
+  .sick { color: #9b59b6; font-style: italic; font-size: 11px; }
+</style>
+</head>
+<body>
+<h1>{{title}}</h1>
+<div class="header-row"><span class="header-label">{{member_label}}</span><span class="header-value">{{member}}</span></div>
+<div class="header-row"><span class="header-label">{{period_label}}</span><span class="header-value">{{period}}</span></div>
+<div class="header-row"><span class="header-label">{{total_label}}</span><span class="header-value">{{total}}</span></div>
+{{table}}
+</body>
+</html>
