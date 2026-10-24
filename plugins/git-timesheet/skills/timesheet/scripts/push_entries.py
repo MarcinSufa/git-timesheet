@@ -3,13 +3,19 @@
 
 Usage:
     python3 push_entries.py --allocation alloc.json [--profile profile.json] \\
-        [--day-start 09:00] [--lunch 12:00-13:00|none] [--tz-offset=+02:00]
+        [--day-start 09:00] [--lunch 12:00-13:00|none] [--tz-offset=+02:00] \\
+        [--service toggl|clockify|tmetric|harvest --workspace-id ID --project-ids ids.json]
 
 Prints a JSON list, one item per entry and day, in day order:
     {"date", "description", "project", "repo", "minutes", "seconds", "hours",
      "start_local", "end_local",   # 2026-03-03T09:00:00 (no offset; TMetric)
      "start", "end",               # with offset, 2026-03-03T09:00:00+01:00 (Toggl)
      "start_utc", "end_utc"}       # 2026-03-03T08:00:00Z (Clockify)
+
+With --service every item also gets "payload", the JSON body for that
+service's create-time-entry call (see references/push.md). --project-ids maps
+project names to the service's IDs: {"My App": 123} or, for Harvest,
+{"My App": {"project_id": 1, "task_id": 2}}. Unknown names give null.
 
 Entries of a day run back to back from the day start; the lunch break is
 skipped (same schedule as the AM/PM time format). The offset is the local
@@ -61,6 +67,25 @@ def entries(alloc, day_start=540, lunch=(720, 780), tz=None):
     return out
 
 
+def payload(service, e, workspace_id=None, ids=None):
+    ref = (ids or {}).get(e["project"]) if e.get("project") else None
+    if service == "toggl":
+        return {"description": e["description"], "start": e["start"], "duration": e["seconds"],
+                "workspace_id": int(workspace_id), "project_id": ref,
+                "created_with": "git-timesheet"}
+    if service == "clockify":
+        return {"start": e["start_utc"], "end": e["end_utc"], "description": e["description"],
+                "projectId": ref}
+    if service == "tmetric":
+        return {"startTime": e["start_local"], "endTime": e["end_local"],
+                "note": e["description"], "projectId": ref}
+    if service == "harvest":
+        ref = ref or {}
+        return {"project_id": ref.get("project_id"), "task_id": ref.get("task_id"),
+                "spent_date": e["date"], "hours": e["hours"], "notes": e["description"]}
+    raise ValueError("unknown service %r" % service)
+
+
 def main(argv=None):
     p = argparse.ArgumentParser(description="Time entries for a time-tracker push")
     p.add_argument("--allocation", required=True)
@@ -68,7 +93,12 @@ def main(argv=None):
     p.add_argument("--day-start")
     p.add_argument("--lunch")
     p.add_argument("--tz-offset")
+    p.add_argument("--service", choices=["toggl", "clockify", "tmetric", "harvest"])
+    p.add_argument("--workspace-id", help="Toggl workspace ID (required for toggl)")
+    p.add_argument("--project-ids", help="JSON file: project name -> service ID")
     a = p.parse_args(argv)
+    if a.service == "toggl" and not a.workspace_id:
+        p.error("--service toggl needs --workspace-id")
     s = {}
     if a.profile:
         with open(os.path.expanduser(a.profile), encoding="utf-8") as f:
@@ -81,6 +111,13 @@ def main(argv=None):
         lunch = None if lunch_spec == "none" else tuple(parse_hhmm(x) for x in lunch_spec.split("-"))
         out = entries(alloc, parse_hhmm(a.day_start or s.get("dayStartTime") or "09:00"), lunch,
                       _offset(a.tz_offset) if a.tz_offset else None)
+        if a.service:
+            ids = {}
+            if a.project_ids:
+                with open(a.project_ids, encoding="utf-8") as f:
+                    ids = json.load(f)
+            for e in out:
+                e["payload"] = payload(a.service, e, a.workspace_id, ids)
     except ValueError as e:
         print("ERROR: %s" % e, file=sys.stderr)
         return 2

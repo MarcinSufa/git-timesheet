@@ -12,7 +12,7 @@ Usage:
 Settings come from the profile's "settings" and "projectMapping" when
 --profile is given; command-line flags override them.
 
-Rules (SKILL.md "Allocate time" is the spec; this file is the implementation):
+Rules (references/allocation.md is the spec; this file is the implementation):
   * score = insertions + deletions + 10 * files, floor 20 per commit
   * weekend and day-off commits move to the nearest working day in the range
     (ties go to the earlier day); a sick day stays sick even with commits

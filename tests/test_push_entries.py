@@ -48,6 +48,33 @@ class PushEntriesTest(unittest.TestCase):
             with contextlib.redirect_stderr(io.StringIO()):
                 self.assertEqual(push_entries.main(["--allocation", path, "--tz-offset", "CET"]), 2)
 
+    def test_payloads(self):
+        out = push_entries.entries(alloc(), tz=push_entries._offset("+01:00"))
+        e = out[0]
+        ids = {"App": 77}
+        self.assertEqual(push_entries.payload("toggl", e, "123", ids),
+                         {"description": e["description"], "start": "2026-03-03T09:00:00+01:00",
+                          "duration": e["seconds"], "workspace_id": 123, "project_id": 77,
+                          "created_with": "git-timesheet"})
+        self.assertEqual(push_entries.payload("clockify", e, ids=ids)["start"], "2026-03-03T08:00:00Z")
+        self.assertEqual(push_entries.payload("tmetric", e)["projectId"], None)
+        h = push_entries.payload("harvest", e, ids={"App": {"project_id": 1, "task_id": 2}})
+        self.assertEqual((h["project_id"], h["task_id"], h["spent_date"], h["hours"]),
+                         (1, 2, "2026-03-03", e["hours"]))
+
+    def test_cli_service(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            path = os.path.join(tmp, "a.json")
+            with open(path, "w") as f:
+                json.dump(alloc(), f)
+            buf = io.StringIO()
+            with contextlib.redirect_stdout(buf):
+                code = push_entries.main(["--allocation", path, "--service", "clockify"])
+            self.assertEqual(code, 0)
+            self.assertIn("payload", json.loads(buf.getvalue())[0])
+            with contextlib.redirect_stderr(io.StringIO()), self.assertRaises(SystemExit):
+                push_entries.main(["--allocation", path, "--service", "toggl"])
+
 
 if __name__ == "__main__":
     unittest.main()
