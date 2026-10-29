@@ -64,8 +64,7 @@ lives in tested scripts; this file is the conversation around them.
   imported templates and earlier output are layout only — never copy names,
   projects, dates, hours or Billable values from them.
 - **Billable is `Yes` for every entry** unless the profile has
-  `settings.billable: "no"`. `examples/sample-timesheet.pdf` shows "No" from
-  an old version; ignore it.
+  `settings.billable: "no"`.
 - **Tokens** come only from environment variables (references/push.md). Never
   ask for one in chat, never print one (not even a prefix).
 
